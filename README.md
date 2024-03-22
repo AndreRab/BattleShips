@@ -1,90 +1,32 @@
-## Gra w okręty
+# Battleship Game
 
-Należy napisać aplikację do gry w okręty przez sieć.
+## Introduction
 
-Aplikacja łączy się z inną aplikacją i rozgrywa partię gry w okręty.
+The Battleship Game application is designed for playing the Battleship game over a network. This project aims to create an engaging and interactive multiplayer experience where players can strategize and compete against each other in the classic game of Battleship.
 
-### Parametry uruchomieniowe
-Aplikacja obługuje następujące parametry:
-* `-mode [server|client]` - wskazuje tryb działania (jako serwer: przyjmuje połączenie, jako klient: nawiązuje połączenie z serwerem)
-* `-server S` - tylko w trybie client; serwer, z którym aplikacja ma się połączyć.
-* `-port N` - port, na którym aplikacja ma się komunikować.
-* `-map map-file` - ścieżka do pliku zawierającego mapę z rozmieszczeniem statków (format opisany w sekcji Mapa).
+## Features
 
-### Mapa
-* Mapa jest dokładnie taka sama jak w zadaniu nr 3 z zestawu 03-collections. Należy użyć uprzednio napisanego generatora do tworzenia losowych map.
+- **Networked Gameplay:** The application connects with another instance of the application over a network, allowing players to engage in real-time Battleship matches.
 
-### Protokół komunikacji
-* Komunikacja odbywa się z użyciem protokołu TCP, z kodowaniem UTF-8.
-* Klient i serwer wysyłają sobie na przemian _wiadomość_, która składa się z 2 części: _komendy_ i _współrzędnych_, odzielonych znakiem `;`, i zakończonych znakiem końca linii `\n`.
-  * Format wiadomości: `komenda;współrzędne\n`
-  * Przykład wiadomości: `pudło;D6\n`
-* Komendy i ich znaczenie:
-  * _start_
-    * komenda inicjująca rozgrywkę. 
-    * Wysyła ją klient tylko raz, na początku.
-    * Przykład: `start;A1\n`
-  * _pudło_
-    * odpowiedź wysyłana, gdy pod współrzędnymi otrzymanymi od drugiej strony nie znajduje się żaden okręt.
-    * Przykład: `pudło;A1\n`
-  * _trafiony_
-    * odpowiedź wysyłana, gdy pod współrzędnymi otrzymanymi od drugiej strony znajduje się okręt, i nie jest to jego ostatni dotychczas nie trafiony segment.
-    * Przykład: `trafiony;A1\n`
-  * _trafiony zatopiony_
-    * odpowiedź wysyłana, gdy pod współrzędnymi otrzymanymi od drugiej strony znajduje się okręt, i trafiono ostatni jeszcze nie trafiony segment tego okrętu.
-    * Przykład: `trafiony zatopiony;A1\n`
-  * _ostatni zatopiony_
-    * odpowiedź wysyłana, gdy pod współrzędnymi otrzymanymi od drugiej strony znajduje się okręt, i trafiono ostatni jeszcze nie trafiony segment okrętu całej floty w tej grze.
-    * Jest to ostatnia komenda w grze. Strona wysyłająca ją przegrywa.
-    * Przy tej komendzie nie podaje się współrzędnych strzału (już nie ma kto strzelać!). 
-    * Przykład: `ostatni zatopiony\n`
-* Możliwe (choć strategicznie nierozsądne) jest wielokrotne strzelanie w to samo miejsce. Należy wtedy odpowiadać zgodnie z aktualnym stanem planszy:
-  * `pudło` w razie pudła,
-  * `trafiony` gdy okręt już był trafiony w to miejsce, ale nie jest jeszcze zatopiony,
-  * `trafiony zatopiony` gdy okręt jest już zatopiony.
-* Obsługa błędów:
-  * W razie otrzymania niezrozumiałej komendy lub po 1 sekundzie oczekiwania należy ponownie wysłać swoją ostatnią wiadomość. 
-  * Po 3 nieudanej próbie należy wyświelić komunikat `Błąd komunikacji` i zakończyć działanie aplikacji.
+- **Game Parameters:** The application supports various command-line parameters to specify the game mode (`server` or `client`), server address (`-server`), communication port (`-port`), and map file path (`-map`).
 
-### Działanie aplikacji
-* Po uruchomieniu (w dowolnym trybie), aplikacja powinna wyświetlić swoją mapę.
-* W czasie działania aplikacja powinna wyświetlać wszystkie wysyłane i otrzymywane wiadomości.
-* Po zakończeniu rozgrywki, aplikacja powinna wyświetlić:
-  * `Wygrana\n` w razie wygranej lub `Przegrana\n` w razie przegranej,
-  * W razie wygranej: pełną mapę przeciwnika,
-  * W razie przegranej: mapę przeciwnika, z zastąpieniem nieznanych pól znakiem `?`. _Uwaga_: pola sąsiadujące z zatopionym okrętem należy uznać za odkryte (nie może się na nich znajdować inny okręt).
-  * Pusty wiersz
-  * Swoją mapę, z dodatkowymi oznaczeniami: `~` - pudła przeciwnika, `@` - celne strzały przeciwnika.
+- **Map Generation:** Maps for the game are generated using the same format as described in assignment number 3 from the collections section. The application utilizes a random map generator to create diverse and challenging game environments.
 
-Przykład mapy przeciwnika z przegranej sesji:
-```
-..#..??.?.
-#.????.#..
-#....??...
-..##....?.
-?.....##..
-??#??.....
-..?......#
-..##...#..
-.##....#.#
-.......#..
-```
+- **Communication Protocol:** Gameplay communication occurs over TCP protocol with UTF-8 encoding. Players exchange messages consisting of commands and coordinates, separated by a semicolon (`;`) and terminated by a newline character (`\n`).
 
-Przykład swojej mapy po grze (wygranej; nie wszytkie okręty zatopione):
-```
-~~@~~.~~~.
-@..~.~.@.~
-#.~#..~.~.
-..##..~..~
-..~.~.@@..
-.#@~..~...
-.~.~.~.~.@
-~.##.~.#~~
-.##~..~~~~
-..~.~.~~~.
-```
+- **Game Commands:** Players send commands such as `start`, `pudło`, `trafiony`, `trafiony zatopiony`, and `ostatni zatopiony` to indicate game events like starting the game, hitting an opponent's ship, sinking a ship, and ending the game.
 
-### Zasady zaliczenia:
-Zadanie nie ma testów automatycznych, ani nawet określonej struktury projektu (należy ją zrobić samemu).
+- **Error Handling:** The application handles errors gracefully, reattempting communication upon receiving an unclear command or waiting for one second. After three unsuccessful attempts, the application displays an error message and terminates.
 
-Zaliczenie będzie polegało na rozegraniu kilku partii pomiędzy uczestnikami zajęć na następnym laboratorium.
+## Usage
+
+The Battleship Game application provides a command-line interface for configuring and playing the game. Below are some of the supported command-line parameters:
+
+- `-mode [server|client]`: Specifies the operating mode of the application (`server` or `client`).
+- `-server S`: Specifies the server address to connect to (only applicable in client mode).
+- `-port N`: Specifies the communication port for the application.
+- `-map map-file`: Specifies the path to the file containing the map layout for ship placement.
+
+## Conclusion
+
+The Battleship Game application offers an immersive multiplayer experience where players can engage in strategic naval combat over a network. With its intuitive command-line interface and robust networking capabilities, the application provides hours of entertainment for players of all skill levels. Challenge your friends to a thrilling game of Battleship and see who will emerge victorious!
